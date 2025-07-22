@@ -56,7 +56,7 @@ ${selected.map((s) => `- ${s}`).join("\n")}
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = \`\${institutionName.replace(/\s+/g, '_')}_AWS_Research_Proposal.txt\`;
+    a.download = `${institutionName.replace(/\s+/g, '_')}_AWS_Research_Proposal.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
