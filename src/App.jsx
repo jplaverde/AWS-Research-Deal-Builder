@@ -84,7 +84,7 @@ ${selected.map((s) => `- ${s}`).join("\n")}
               <div
                 key={option}
                 onClick={() => toggle(option)}
-                className={\`cursor-pointer border p-3 rounded \${selected.includes(option) ? "border-blue-600 bg-blue-50" : "border-gray-300"}\`}
+                className={`cursor-pointer border p-3 rounded ${selected.includes(option) ? "border-blue-600 bg-blue-50" : "border-gray-300"}`}
               >
                 {option}
               </div>
