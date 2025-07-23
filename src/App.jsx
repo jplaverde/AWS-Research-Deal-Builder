@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { saveAs } from "file-saver";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+} from "docx";
 
 const researchOptions = {
   "Compliance & Secure Research Environment (SRE)": [
@@ -81,31 +87,46 @@ export default function ResearchDealBuilder() {
 
   const generateDocument = async () => {
     const doc = new Document();
+    const children = [];
 
-    doc.addSection({
-      children: [
+    children.push(
+      new Paragraph({
+        text: `AWS Research Partnership Letter`,
+        heading: HeadingLevel.HEADING_1,
+      }),
+      new Paragraph({ text: "" }),
+      new Paragraph({ text: `To: ${institutionName}` }),
+      new Paragraph({ text: "" }),
+      new Paragraph({
+        text:
+          "AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.",
+      })
+    );
+
+    Object.entries(researchOptions).forEach(([category, options]) => {
+      const selectedOptions = selected[category];
+      if (!selectedOptions || selectedOptions.length === 0) return;
+
+      children.push(
         new Paragraph({
-          text: `AWS Research Partnership Letter`,
-          heading: HeadingLevel.TITLE
-        }),
-        new Paragraph({ text: `To: ${institutionName}`, spacing: { after: 200 } }),
-        new Paragraph({ text: `AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.`, spacing: { after: 200 } }),
-
-        ...Object.entries(researchOptions).flatMap(([category, options]) => {
-          const selectedOptions = selected[category];
-          if (!selectedOptions || selectedOptions.length === 0) return [];
-          return [
-            new Paragraph({ text: category, heading: HeadingLevel.HEADING_2 }),
-            ...selectedOptions.map(opt => new Paragraph({ text: `• ${opt}` }))
-          ];
-        }),
-
-        new Paragraph({ spacing: { before: 300, after: 200 } }),
-        new Paragraph({
-          text: `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`
+          text: category,
+          heading: HeadingLevel.HEADING_2,
         })
-      ]
+      );
+
+      selectedOptions.forEach((opt) => {
+        children.push(new Paragraph({ text: `• ${opt}` }));
+      });
     });
+
+    children.push(
+      new Paragraph({ text: "" }),
+      new Paragraph({
+        text: `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`,
+      })
+    );
+
+    doc.addSection({ children });
 
     const blob = await Packer.toBlob(doc);
     saveAs(blob, `${institutionName.replace(/\s+/g, '_')}_AWS_Research_Partnership_Letter.docx`);
@@ -165,4 +186,3 @@ export default function ResearchDealBuilder() {
     </div>
   );
 }
-
