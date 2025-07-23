@@ -68,18 +68,21 @@ export default function ResearchDealBuilder() {
     });
   };
 
-  const generateDocument = async () => {
+  const generateDoc = async () => {
     const doc = new Document({
       sections: [
         {
+          properties: {},
           children: [
             new Paragraph({
               text: "AWS Research Partnership Letter",
-              heading: HeadingLevel.HEADING_1,
-              thematicBreak: true
+              heading: HeadingLevel.TITLE
             }),
-            new Paragraph(`To: ${institutionName}`),
-            new Paragraph("AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution."),
+            new Paragraph({ text: `To: ${institutionName}`, spacing: { after: 300 } }),
+            new Paragraph({
+              text: `AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.`,
+              spacing: { after: 300 }
+            }),
             ...Object.entries(selected).flatMap(([category, items]) => [
               new Paragraph({
                 text: category,
@@ -87,19 +90,26 @@ export default function ResearchDealBuilder() {
               }),
               ...items.map((item) =>
                 new Paragraph({
-                  text: `• ${item}`,
-                  bullet: { level: 0 }
+                  children: [new TextRun({ text: `• ${item}`, break: 1 })]
                 })
               )
             ]),
-            new Paragraph("AWS will work in partnership with your institution to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources."),
+            new Paragraph({
+              spacing: { before: 300 },
+              children: [
+                new TextRun({
+                  text: `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`,
+                  break: 1
+                })
+              ]
+            })
           ]
         }
       ]
     });
 
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${institutionName.replace(/\s+/g, "_")}_AWS_Research_Letter.docx`);
+    saveAs(blob, `${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Letter.docx`);
   };
 
   return (
@@ -143,7 +153,7 @@ export default function ResearchDealBuilder() {
 
       <div className="text-right mt-6">
         <button
-          onClick={generateDocument}
+          onClick={generateDoc}
           disabled={!institutionName}
           className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
         >
