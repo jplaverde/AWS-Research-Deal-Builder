@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { saveAs } from "file-saver";
+import { saveAs } from "file-saver/dist/FileSaver.min.js";
 import {
   Document,
   Packer,
