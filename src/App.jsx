@@ -54,6 +54,17 @@ const researchOptions = {
   ]
 };
 
+const categoryDescriptions = {
+  "Compliance & Secure Research Environment (SRE)": "Support for institutional compliance with cybersecurity frameworks such as CMMC, FedRAMP, and HIPAA/NIST, including deployment of secure AWS-native research environments.",
+  "Events & Seminars": "AWS-hosted training and research-focused events to promote cloud fluency and academic collaboration.",
+  "Faculty Incentives": "Onboarding and enablement resources tailored to support faculty researchers at all stages.",
+  "Grant Support": "Official AWS collaboration and endorsement documentation to strengthen research funding proposals.",
+  "Research Commercialization": "Programs to transition academic research into startup pathways or commercial ventures.",
+  "Research Enablement": "Cloud credits, guidance, and tools that directly accelerate academic research outcomes.",
+  "Research Infrastructure": "Access to scalable compute, storage, and governance tooling for research workloads.",
+  "Student/University Engagement": "Hands-on programs to involve students, track on-prem usage, and encourage cloud experimentation."
+};
+
 export default function ResearchDealBuilder() {
   const [selected, setSelected] = useState({});
   const [institutionName, setInstitutionName] = useState("");
@@ -69,48 +80,37 @@ export default function ResearchDealBuilder() {
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.setTextColor(255, 153, 0); // AWS orange
-    doc.text("AWS Research Partnership Letter", 14, 20);
+    doc.setFontSize(16);
+    doc.setTextColor(255, 153, 0);
+    doc.text("AWS Research Partnership Letter", 20, 20);
 
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text(`To: ${institutionName}`, 14, 30);
-    doc.text(
-      `AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.`,
-      14,
-      40,
-      { maxWidth: 180 }
-    );
+    doc.text(`To: ${institutionName}`, 20, 30);
+    doc.text("AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.", 20, 40, { maxWidth: 170 });
 
     let y = 55;
-
     Object.entries(selected).forEach(([category, items]) => {
-      doc.setTextColor(35, 47, 62); // AWS dark blue
+      doc.setTextColor(35, 47, 62);
       doc.setFontSize(14);
-      doc.text(category, 14, y);
-      y += 8;
+      doc.text(category, 20, y);
+      y += 6;
 
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       items.forEach((item) => {
-        doc.text(`- ${item}`, 18, y);
-        y += 7;
+        doc.text(`• ${item}`, 25, y);
+        y += 6;
         if (y > 270) {
           doc.addPage();
           y = 20;
         }
       });
-
-      y += 10;
+      y += 4;
     });
 
-    doc.text(
-      `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`,
-      14,
-      y,
-      { maxWidth: 180 }
-    );
+    doc.setFontSize(12);
+    doc.text(`AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`, 20, y, { maxWidth: 170 });
 
     doc.save(`${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Letter.pdf`);
   };
@@ -142,6 +142,7 @@ export default function ResearchDealBuilder() {
       {Object.entries(researchOptions).map(([category, options]) => (
         <div key={category} className="my-6 border border-gray-200 rounded shadow-sm p-4">
           <h2 className="text-xl font-semibold text-orange-600 mb-2">{category}</h2>
+          <p className="text-sm text-gray-600 mb-2">{categoryDescriptions[category]}</p>
           {options.map((opt) => (
             <label key={opt} className="block mb-1">
               <input
@@ -162,7 +163,7 @@ export default function ResearchDealBuilder() {
           disabled={!institutionName}
           className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
         >
-          Download PDF Partnership Letter
+          Download Partnership Letter
         </button>
       </div>
     </div>
