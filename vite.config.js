@@ -3,7 +3,12 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: ['file-saver', 'docx']
+  },
   build: {
-    outDir: 'dist'
+    rollupOptions: {
+      external: ['docx', 'file-saver']
+    }
   }
 });
