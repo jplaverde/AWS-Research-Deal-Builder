@@ -1,9 +1,13 @@
 import React, { useState } from "react";
+import { saveAs } from "file-saver";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from "docx";
 
 const researchOptions = {
-  "Compliance Readiness": [
+  "Compliance & Secure Research Environment (SRE)": [
     "CMMC/NIST Documentation Support",
-    "Certification Eligibility (FedRAMP, CMMC, HIPAA/NIST)"
+    "Certification Eligibility (FedRAMP, CMMC, HIPAA/NIST)",
+    "SRE Deployment (AWS Native)",
+    "Research Data Governance"
   ],
   "Events & Seminars": [
     "AWS Immersion Day",
@@ -44,10 +48,6 @@ const researchOptions = {
     "Access to Accelerated Computing (GPU, FPGA, Quantum)",
     "Quantum Computing @ AWS"
   ],
-  "Secure Research Environment (SRE)": [
-    "SRE Deployment (AWS Native)",
-    "Research Data Governance"
-  ],
   "Student/University Engagement": [
     "Cloud Trained Student Pairing",
     "Analysis of On-Prem Cluster Utilization",
@@ -56,14 +56,13 @@ const researchOptions = {
 };
 
 const categoryDescriptions = {
-  "Compliance Readiness": "Support for institutional compliance with cybersecurity frameworks such as CMMC, FedRAMP, and HIPAA/NIST.",
+  "Compliance & Secure Research Environment (SRE)": "Support for institutional compliance with cybersecurity frameworks such as CMMC, FedRAMP, and HIPAA/NIST, including deployment of secure AWS-native research environments.",
   "Events & Seminars": "AWS-hosted training and research-focused events to promote cloud fluency and academic collaboration.",
   "Faculty Incentives": "Onboarding and enablement resources tailored to support faculty researchers at all stages.",
   "Grant Support": "Official AWS collaboration and endorsement documentation to strengthen research funding proposals.",
   "Research Commercialization": "Programs to transition academic research into startup pathways or commercial ventures.",
   "Research Enablement": "Cloud credits, guidance, and tools that directly accelerate academic research outcomes.",
   "Research Infrastructure": "Access to scalable compute, storage, and governance tooling for research workloads.",
-  "Secure Research Environment (SRE)": "Turnkey AWS-native environments for secure data analysis, enclave research, and compliance-aligned science.",
   "Student/University Engagement": "Hands-on programs to involve students, track on-prem usage, and encourage cloud experimentation."
 };
 
@@ -72,26 +71,44 @@ export default function ResearchDealBuilder() {
   const [institutionName, setInstitutionName] = useState("");
 
   const handleChange = (category, option) => {
-    setSelected((prev) => ({ ...prev, [category]: option }));
+    setSelected((prev) => {
+      const current = prev[category] || [];
+      const exists = current.includes(option);
+      const updated = exists ? current.filter(o => o !== option) : [...current, option];
+      return { ...prev, [category]: updated };
+    });
   };
 
-  const generateDocument = () => {
-    const content = `AWS Research Partnership Letter\n\nTo: ${institutionName}\n\nAWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.\n\n${Object.entries(researchOptions)
-      .map(([category, options]) => {
-        const selectedOption = selected[category];
-        if (!selectedOption) return null;
-        return `## ${category}\n${selectedOption}`;
-      })
-      .filter(Boolean)
-      .join("\n\n")}\n\nAWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`;
+  const generateDocument = async () => {
+    const doc = new Document();
 
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${institutionName.replace(/\s+/g, '_')}_AWS_Research_Partnership_Letter.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    doc.addSection({
+      children: [
+        new Paragraph({
+          text: `AWS Research Partnership Letter`,
+          heading: HeadingLevel.TITLE
+        }),
+        new Paragraph({ text: `To: ${institutionName}`, spacing: { after: 200 } }),
+        new Paragraph({ text: `AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.`, spacing: { after: 200 } }),
+
+        ...Object.entries(researchOptions).flatMap(([category, options]) => {
+          const selectedOptions = selected[category];
+          if (!selectedOptions || selectedOptions.length === 0) return [];
+          return [
+            new Paragraph({ text: category, heading: HeadingLevel.HEADING_2 }),
+            ...selectedOptions.map(opt => new Paragraph({ text: `• ${opt}` }))
+          ];
+        }),
+
+        new Paragraph({ spacing: { before: 300, after: 200 } }),
+        new Paragraph({
+          text: `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`
+        })
+      ]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `${institutionName.replace(/\s+/g, '_')}_AWS_Research_Partnership_Letter.docx`);
   };
 
   return (
@@ -122,16 +139,17 @@ export default function ResearchDealBuilder() {
         <div key={category} className="my-6 border border-gray-200 rounded shadow-sm p-4">
           <h2 className="text-xl font-semibold text-orange-600 mb-2">{category}</h2>
           <p className="text-sm text-gray-600 mb-2">{categoryDescriptions[category]}</p>
-          <select
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            onChange={(e) => handleChange(category, e.target.value)}
-            value={selected[category] || ""}
-          >
-            <option value="">Select an option...</option>
-            {options.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
+          {options.map((opt) => (
+            <label key={opt} className="block mb-1">
+              <input
+                type="checkbox"
+                className="mr-2"
+                checked={selected[category]?.includes(opt) || false}
+                onChange={() => handleChange(category, opt)}
+              />
+              {opt}
+            </label>
+          ))}
         </div>
       ))}
 
@@ -147,3 +165,4 @@ export default function ResearchDealBuilder() {
     </div>
   );
 }
+
