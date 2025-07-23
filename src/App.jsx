@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { saveAs } from "file-saver/dist/FileSaver.min.js";
+import { saveAs } from "file-saver";
 import {
   Document,
   Packer,
   Paragraph,
   TextRun,
-  HeadingLevel,
+  HeadingLevel
 } from "docx";
 
 const researchOptions = {
@@ -62,14 +62,22 @@ const researchOptions = {
 };
 
 const categoryDescriptions = {
-  "Compliance & Secure Research Environment (SRE)": "Support for institutional compliance with cybersecurity frameworks such as CMMC, FedRAMP, and HIPAA/NIST, including deployment of secure AWS-native research environments.",
-  "Events & Seminars": "AWS-hosted training and research-focused events to promote cloud fluency and academic collaboration.",
-  "Faculty Incentives": "Onboarding and enablement resources tailored to support faculty researchers at all stages.",
-  "Grant Support": "Official AWS collaboration and endorsement documentation to strengthen research funding proposals.",
-  "Research Commercialization": "Programs to transition academic research into startup pathways or commercial ventures.",
-  "Research Enablement": "Cloud credits, guidance, and tools that directly accelerate academic research outcomes.",
-  "Research Infrastructure": "Access to scalable compute, storage, and governance tooling for research workloads.",
-  "Student/University Engagement": "Hands-on programs to involve students, track on-prem usage, and encourage cloud experimentation."
+  "Compliance & Secure Research Environment (SRE)":
+    "Support for institutional compliance with cybersecurity frameworks such as CMMC, FedRAMP, and HIPAA/NIST, including deployment of secure AWS-native research environments.",
+  "Events & Seminars":
+    "AWS-hosted training and research-focused events to promote cloud fluency and academic collaboration.",
+  "Faculty Incentives":
+    "Onboarding and enablement resources tailored to support faculty researchers at all stages.",
+  "Grant Support":
+    "Official AWS collaboration and endorsement documentation to strengthen research funding proposals.",
+  "Research Commercialization":
+    "Programs to transition academic research into startup pathways or commercial ventures.",
+  "Research Enablement":
+    "Cloud credits, guidance, and tools that directly accelerate academic research outcomes.",
+  "Research Infrastructure":
+    "Access to scalable compute, storage, and governance tooling for research workloads.",
+  "Student/University Engagement":
+    "Hands-on programs to involve students, track on-prem usage, and encourage cloud experimentation."
 };
 
 export default function ResearchDealBuilder() {
@@ -80,56 +88,56 @@ export default function ResearchDealBuilder() {
     setSelected((prev) => {
       const current = prev[category] || [];
       const exists = current.includes(option);
-      const updated = exists ? current.filter(o => o !== option) : [...current, option];
+      const updated = exists
+        ? current.filter((o) => o !== option)
+        : [...current, option];
       return { ...prev, [category]: updated };
     });
   };
 
   const generateDocument = async () => {
-    const doc = new Document();
-    const children = [];
-
-    children.push(
-      new Paragraph({
-        text: `AWS Research Partnership Letter`,
-        heading: HeadingLevel.HEADING_1,
-      }),
-      new Paragraph({ text: "" }),
-      new Paragraph({ text: `To: ${institutionName}` }),
-      new Paragraph({ text: "" }),
-      new Paragraph({
-        text:
-          "AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.",
-      })
-    );
-
-    Object.entries(researchOptions).forEach(([category, options]) => {
-      const selectedOptions = selected[category];
-      if (!selectedOptions || selectedOptions.length === 0) return;
-
-      children.push(
-        new Paragraph({
-          text: category,
-          heading: HeadingLevel.HEADING_2,
-        })
-      );
-
-      selectedOptions.forEach((opt) => {
-        children.push(new Paragraph({ text: `• ${opt}` }));
-      });
+    const doc = new Document({
+      sections: [
+        {
+          children: [
+            new Paragraph({
+              text: "AWS Research Partnership Letter",
+              heading: HeadingLevel.TITLE
+            }),
+            new Paragraph({
+              text: `To: ${institutionName}`,
+              spacing: { after: 200 }
+            }),
+            new Paragraph(
+              "AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution."
+            ),
+            ...Object.entries(selected).flatMap(([category, items]) => [
+              new Paragraph({
+                text: category,
+                heading: HeadingLevel.HEADING_2
+              }),
+              ...items.map(
+                (item) =>
+                  new Paragraph({
+                    text: `• ${item}`,
+                    bullet: { level: 0 }
+                  })
+              )
+            ]),
+            new Paragraph(""),
+            new Paragraph(
+              `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`
+            )
+          ]
+        }
+      ]
     });
 
-    children.push(
-      new Paragraph({ text: "" }),
-      new Paragraph({
-        text: `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`,
-      })
-    );
-
-    doc.addSection({ children });
-
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${institutionName.replace(/\s+/g, '_')}_AWS_Research_Partnership_Letter.docx`);
+    saveAs(
+      blob,
+      `${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Letter.docx`
+    );
   };
 
   return (
@@ -140,7 +148,9 @@ export default function ResearchDealBuilder() {
           alt="AWS Logo"
           className="h-12"
         />
-        <h1 className="text-3xl font-bold text-orange-500">AWS Research Partnership Builder</h1>
+        <h1 className="text-3xl font-bold text-orange-500">
+          AWS Research Partnership Builder
+        </h1>
       </div>
 
       <div className="mb-4">
@@ -157,9 +167,16 @@ export default function ResearchDealBuilder() {
       </div>
 
       {Object.entries(researchOptions).map(([category, options]) => (
-        <div key={category} className="my-6 border border-gray-200 rounded shadow-sm p-4">
-          <h2 className="text-xl font-semibold text-orange-600 mb-2">{category}</h2>
-          <p className="text-sm text-gray-600 mb-2">{categoryDescriptions[category]}</p>
+        <div
+          key={category}
+          className="my-6 border border-gray-200 rounded shadow-sm p-4"
+        >
+          <h2 className="text-xl font-semibold text-orange-600 mb-2">
+            {category}
+          </h2>
+          <p className="text-sm text-gray-600 mb-2">
+            {categoryDescriptions[category]}
+          </p>
           {options.map((opt) => (
             <label key={opt} className="block mb-1">
               <input
