@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import html2pdf from "html2pdf.js";
+import { jsPDF } from "jspdf";
+import logo from "./aws-logo.png";
+import diagram from "./aws-diagram.png";
 
 const researchOptions = {
   "Compliance & Secure Research Environment (SRE)": [
@@ -78,18 +80,59 @@ export default function ResearchDealBuilder() {
     });
   };
 
+  const resetForm = () => {
+    setSelected({});
+    setInstitutionName("");
+  };
+
   const generatePDF = () => {
-    const content = document.getElementById("pdf-content");
-    html2pdf(content, {
-      filename: `${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Letter.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" }
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.setTextColor(255, 153, 0);
+    doc.text("Amazon Web Services (AWS)", 20, 20);
+    doc.setFontSize(16);
+    doc.text("Research Partnership Framework", 20, 30);
+
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Institution: ${institutionName}`, 20, 40);
+    doc.text("AWS is pleased to present a tailored partnership framework to support the mission-critical research efforts of your institution. This document outlines proposed collaboration categories and service offerings that reflect AWS’s commitment to secure, scalable, and innovative cloud-based research.", 20, 50, { maxWidth: 170 });
+
+    let y = 70;
+    Object.entries(selected).forEach(([category, items]) => {
+      doc.setFontSize(14);
+      doc.setTextColor(35, 47, 62);
+      doc.text(category, 20, y);
+      y += 6;
+
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      items.forEach((item) => {
+        doc.text(`• ${item}`, 25, y);
+        y += 6;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+      y += 4;
     });
+
+    doc.setFontSize(12);
+    doc.text("We look forward to exploring this collaboration to deliver meaningful research outcomes, accelerate discovery, and foster long-term innovation.", 20, y, { maxWidth: 170 });
+    y += 20;
+
+    const img = new Image();
+    img.src = diagram;
+    img.onload = () => {
+      doc.addPage();
+      doc.addImage(img, "PNG", 20, 20, 170, 100);
+      doc.save(`${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Framework.pdf`);
+    };
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto font-sans text-gray-900">
+    <div className="p-8 max-w-4xl mx-auto font-sans text-gray-900 bg-white">
       <div className="mb-6 flex items-center justify-between">
         <img
           src="https://d0.awsstatic.com/logos/powered-by-aws.png"
@@ -115,12 +158,12 @@ export default function ResearchDealBuilder() {
       {Object.entries(researchOptions).map(([category, options]) => (
         <div key={category} className="my-6 border border-gray-200 rounded shadow-sm p-4">
           <h2 className="text-xl font-semibold text-orange-600 mb-2">{category}</h2>
-          <p className="text-sm text-gray-600 mb-2">{categoryDescriptions[category]}</p>
+          <p className="text-sm text-gray-600 mb-4">{categoryDescriptions[category]}</p>
           {options.map((opt) => (
-            <label key={opt} className="block mb-1">
+            <label key={opt} className="block mb-3 text-gray-800">
               <input
                 type="checkbox"
-                className="mr-2"
+                className="mr-2 accent-orange-500"
                 checked={selected[category]?.includes(opt) || false}
                 onChange={() => handleChange(category, opt)}
               />
@@ -130,37 +173,20 @@ export default function ResearchDealBuilder() {
         </div>
       ))}
 
-      <div className="text-right mt-6">
+      <div className="text-right mt-6 space-x-4">
+        <button
+          onClick={resetForm}
+          className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+        >
+          Reset Form
+        </button>
         <button
           onClick={generatePDF}
           disabled={!institutionName}
           className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
         >
-          Download Partnership Letter
+          Download Partnership PDF
         </button>
-      </div>
-
-      <div id="pdf-content" className="hidden">
-        <h1 style={{ color: '#FF9900', fontSize: '22px' }}>AWS Research Partnership Letter</h1>
-        <p><strong>To:</strong> {institutionName}</p>
-        <p>AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.</p>
-
-        {Object.entries(selected).map(([category, items]) => (
-          <div key={category}>
-            <h2 style={{ color: '#232F3E', fontSize: '18px', marginTop: '20px' }}>{category}</h2>
-            <ul>
-              {items.map((item) => (
-                <li key={item}>• {item}</li>
-              ))}
-            </ul>
-          </div>
-        ))}
-
-        <p style={{ marginTop: '20px' }}>AWS will work in partnership with {institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.</p>
-
-        <img src="https://your-diagram-url.com/aws-diagram.png" alt="AWS Diagram" style={{ width: '100%', marginTop: '20px' }} />
-
-        <p style={{ marginTop: '30px' }}>Sincerely,<br/>The AWS Research Team</p>
       </div>
     </div>
   );
