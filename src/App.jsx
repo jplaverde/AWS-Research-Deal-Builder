@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { jsPDF } from "jspdf";
+import html2pdf from "html2pdf.js";
 
 const researchOptions = {
   "Compliance & Secure Research Environment (SRE)": [
@@ -79,40 +79,13 @@ export default function ResearchDealBuilder() {
   };
 
   const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.setTextColor(255, 153, 0);
-    doc.text("AWS Research Partnership Letter", 20, 20);
-
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`To: ${institutionName}`, 20, 30);
-    doc.text("AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.", 20, 40, { maxWidth: 170 });
-
-    let y = 55;
-    Object.entries(selected).forEach(([category, items]) => {
-      doc.setTextColor(35, 47, 62);
-      doc.setFontSize(14);
-      doc.text(category, 20, y);
-      y += 6;
-
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      items.forEach((item) => {
-        doc.text(`• ${item}`, 25, y);
-        y += 6;
-        if (y > 270) {
-          doc.addPage();
-          y = 20;
-        }
-      });
-      y += 4;
+    const content = document.getElementById("pdf-content");
+    html2pdf(content, {
+      filename: `${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Letter.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" }
     });
-
-    doc.setFontSize(12);
-    doc.text(`AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`, 20, y, { maxWidth: 170 });
-
-    doc.save(`${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Letter.pdf`);
   };
 
   return (
@@ -165,6 +138,29 @@ export default function ResearchDealBuilder() {
         >
           Download Partnership Letter
         </button>
+      </div>
+
+      <div id="pdf-content" className="hidden">
+        <h1 style={{ color: '#FF9900', fontSize: '22px' }}>AWS Research Partnership Letter</h1>
+        <p><strong>To:</strong> {institutionName}</p>
+        <p>AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.</p>
+
+        {Object.entries(selected).map(([category, items]) => (
+          <div key={category}>
+            <h2 style={{ color: '#232F3E', fontSize: '18px', marginTop: '20px' }}>{category}</h2>
+            <ul>
+              {items.map((item) => (
+                <li key={item}>• {item}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        <p style={{ marginTop: '20px' }}>AWS will work in partnership with {institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.</p>
+
+        <img src="https://your-diagram-url.com/aws-diagram.png" alt="AWS Diagram" style={{ width: '100%', marginTop: '20px' }} />
+
+        <p style={{ marginTop: '30px' }}>Sincerely,<br/>The AWS Research Team</p>
       </div>
     </div>
   );
