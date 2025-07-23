@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
-import { saveAs } from "file-saver";
+import { jsPDF } from "jspdf";
 
 const researchOptions = {
   "Compliance & Secure Research Environment (SRE)": [
@@ -68,48 +67,52 @@ export default function ResearchDealBuilder() {
     });
   };
 
-  const generateDoc = async () => {
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [
-            new Paragraph({
-              text: "AWS Research Partnership Letter",
-              heading: HeadingLevel.TITLE
-            }),
-            new Paragraph({ text: `To: ${institutionName}`, spacing: { after: 300 } }),
-            new Paragraph({
-              text: `AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.`,
-              spacing: { after: 300 }
-            }),
-            ...Object.entries(selected).flatMap(([category, items]) => [
-              new Paragraph({
-                text: category,
-                heading: HeadingLevel.HEADING_2
-              }),
-              ...items.map((item) =>
-                new Paragraph({
-                  children: [new TextRun({ text: `• ${item}`, break: 1 })]
-                })
-              )
-            ]),
-            new Paragraph({
-              spacing: { before: 300 },
-              children: [
-                new TextRun({
-                  text: `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`,
-                  break: 1
-                })
-              ]
-            })
-          ]
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.setTextColor(255, 153, 0); // AWS orange
+    doc.text("AWS Research Partnership Letter", 14, 20);
+
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`To: ${institutionName}`, 14, 30);
+    doc.text(
+      `AWS proposes the following tailored research engagement framework to support innovation, security, and scalability for your institution.`,
+      14,
+      40,
+      { maxWidth: 180 }
+    );
+
+    let y = 55;
+
+    Object.entries(selected).forEach(([category, items]) => {
+      doc.setTextColor(35, 47, 62); // AWS dark blue
+      doc.setFontSize(14);
+      doc.text(category, 14, y);
+      y += 8;
+
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      items.forEach((item) => {
+        doc.text(`- ${item}`, 18, y);
+        y += 7;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
         }
-      ]
+      });
+
+      y += 10;
     });
 
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Letter.docx`);
+    doc.text(
+      `AWS will work in partnership with ${institutionName} to enable best-in-class research, accelerate time to insight, and prepare researchers with compliant and cost-effective cloud resources.`,
+      14,
+      y,
+      { maxWidth: 180 }
+    );
+
+    doc.save(`${institutionName.replace(/\s+/g, "_")}_AWS_Partnership_Letter.pdf`);
   };
 
   return (
@@ -124,7 +127,9 @@ export default function ResearchDealBuilder() {
       </div>
 
       <div className="mb-4">
-        <label className="block mb-1 font-medium text-gray-700">Institution Name:</label>
+        <label className="block mb-1 font-medium text-gray-700">
+          Institution Name:
+        </label>
         <input
           type="text"
           className="w-full border border-gray-300 rounded px-3 py-2"
@@ -153,11 +158,11 @@ export default function ResearchDealBuilder() {
 
       <div className="text-right mt-6">
         <button
-          onClick={generateDoc}
+          onClick={generatePDF}
           disabled={!institutionName}
           className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
         >
-          Download Partnership Letter
+          Download PDF Partnership Letter
         </button>
       </div>
     </div>
