@@ -1,57 +1,85 @@
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 
-import { useState } from "react";
-
-const categories = {
-  Infrastructure: [
-    "Secure Research Enclave (SRE)",
-    "Landing Zone Accelerator (LZA)",
-    "Secure Research Portal (SRP)"
+const researchOptions = {
+  "Compliance Readiness": [
+    "CMMC/NIST Documentation Support",
+    "Certification Eligibility (FedRAMP, CMMC, HIPAA/NIST)"
   ],
-  Enablement: [
-    "Immersion Days",
-    "AWS Cloud Credits",
-    "CloudStart Grant Coaching"
+  "Events & Seminars": [
+    "AWS Immersion Day",
+    "AWS Research Seminar Series",
+    "Annual AWS Sponsored Research Conference"
   ],
-  Compliance: [
-    "NIH Genomic Data Sharing (GDS) Readiness",
-    "CMMC / NIST 800-171 Framework",
-    "SSP and Audit Documentation"
+  "Faculty Incentives": [
+    "New Faculty Onboarding Package",
+    "Executive Credit Program for Existing Faculty/Researchers"
   ],
-  Commercialization: [
+  "Grant Support": [
+    "Letter of Support for Proposal",
+    "AWS Letter of Collaboration for Grant Submissions"
+  ],
+  "Research Commercialization": [
     "Startup Collaboration Program",
-    "Activate Credits for Spinouts",
-    "Joint Steering Committee"
+    "AWS Credits for Startups",
+    "Startup Immersion Days",
+    "Joint Steering Committee (JSC)",
+    "AWS BD Liaison Assignment",
+    "Working Backwards Sessions",
+    "Innovation Enablement",
+    "Case Study Development"
   ],
-  Talent: [
-    "AWS Academy Student Research Pairing",
-    "Research Workforce Upskilling",
-    "Postdoc-to-Cloud Pathways"
+  "Research Enablement": [
+    "Cloud Credit for Research",
+    "Amazon Research Awards",
+    "Published Blogs and Case Studies",
+    "Research Office Hours with AWS Experts",
+    "Development of Center of Excellence for Research in the Cloud"
+  ],
+  "Research Infrastructure": [
+    "HPC Cluster On Demand",
+    "Landing Zone/Control Tower Creation",
+    "Business Operations Setup (Account vending, billing, budgeting)",
+    "Research Data Repository",
+    "Hybrid Storage and File Caching",
+    "Access to Accelerated Computing (GPU, FPGA, Quantum)",
+    "Quantum Computing @ AWS"
+  ],
+  "Secure Research Environment (SRE)": [
+    "SRE Deployment (AWS Native)",
+    "Research Data Governance"
+  ],
+  "Student/University Engagement": [
+    "Cloud Trained Student Pairing",
+    "Analysis of On-Prem Cluster Utilization",
+    "Waiving Indirect Costs for Cloud Research"
   ]
 };
 
-export default function App() {
+export default function ResearchDealBuilder() {
   const [selected, setSelected] = useState([]);
   const [institutionName, setInstitutionName] = useState("");
-  const [focusArea, setFocusArea] = useState("");
 
-  const toggle = (item) => {
+  const toggle = (option) => {
     setSelected((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+      prev.includes(option)
+        ? prev.filter((item) => item !== option)
+        : [...prev, option]
     );
   };
 
-  const generateDoc = () => {
-    const content = `
-------------------------------
-AWS Research Partnership Proposal
-------------------------------
+  const generateDocument = () => {
+    const content = `AWS Research Partnership Proposal\n\nInstitution: ${institutionName}\n\nSelected Offerings by Category:\n\n${Object.entries(researchOptions)
+      .map(([category, options]) => {
+        const selectedOptions = options.filter((opt) => selected.includes(opt));
+        if (selectedOptions.length === 0) return null;
+        return `### ${category}\n${selectedOptions.map((opt) => `- ${opt}`).join("\n")}`;
+      })
+      .filter(Boolean)
+      .join("\n\n")}\n\nAWS is proud to support ${institutionName} with tailored resources in research enablement, infrastructure, commercialization, and compliance.`;
 
-Institution: ${institutionName}
-Focus Area: ${focusArea}
-
-Selected Offerings:
-${selected.map((s) => `- ${s}`).join("\n")}
-`;
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -62,39 +90,52 @@ ${selected.map((s) => `- ${s}`).join("\n")}
   };
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-3xl font-bold">Customize Your AWS Research Proposal</h1>
-      <input
-        placeholder="Institution Name"
-        value={institutionName}
-        onChange={(e) => setInstitutionName(e.target.value)}
-        className="border p-2 rounded w-full"
-      />
-      <textarea
-        placeholder="Focus Area (AI, Life Sciences, Compliance, etc)"
-        value={focusArea}
-        onChange={(e) => setFocusArea(e.target.value)}
-        className="border p-2 rounded w-full"
-      />
-      {Object.entries(categories).map(([cat, options]) => (
-        <div key={cat}>
-          <h2 className="text-xl font-semibold mt-4 mb-2">{cat}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {options.map((option) => (
-              <div
-                key={option}
-                onClick={() => toggle(option)}
-                className={`cursor-pointer border p-3 rounded ${selected.includes(option) ? "border-blue-600 bg-blue-50" : "border-gray-300"}`}
-              >
-                {option}
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="p-8 max-w-4xl mx-auto font-sans text-gray-900">
+      <div className="mb-6 flex items-center justify-between">
+        <img
+          src="https://d0.awsstatic.com/logos/powered-by-aws.png"
+          alt="AWS Logo"
+          className="h-12"
+        />
+        <h1 className="text-3xl font-bold">AWS Research Deal Builder</h1>
+      </div>
+      <div className="mb-4">
+        <label className="block mb-1 font-medium text-gray-700">
+          Institution Name:
+        </label>
+        <Input
+          placeholder="e.g., University of Example"
+          value={institutionName}
+          onChange={(e) => setInstitutionName(e.target.value)}
+        />
+      </div>
+      {Object.entries(researchOptions).map(([category, options]) => (
+        <Card key={category} className="my-4">
+          <CardContent className="p-4">
+            <h2 className="text-xl font-semibold mb-2">{category}</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {options.map((option) => (
+                <div
+                  key={option}
+                  onClick={() => toggle(option)}
+                  className={`cursor-pointer border p-3 rounded shadow-sm transition duration-150 ease-in-out ${
+                    selected.includes(option)
+                      ? "border-orange-500 bg-orange-50"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {option}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       ))}
-      <button onClick={generateDoc} className="mt-6 bg-blue-600 text-white px-4 py-2 rounded">
-        Download Proposal
-      </button>
+      <div className="text-right mt-6">
+        <Button onClick={generateDocument} disabled={!institutionName || selected.length === 0}>
+          Download Proposal Document
+        </Button>
+      </div>
     </div>
   );
 }
